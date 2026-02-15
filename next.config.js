@@ -8,7 +8,7 @@ const nextConfig = {
   
   // Environment variables that should be available on the client side
   env: {
-    SITE_NAME: 'AdminFrançais',
+    SITE_NAME: 'Démarches Simplifiées',
   },
 }
 

@@ -5,8 +5,5 @@
       "src": "package.json",
       "use": "@vercel/next"
     }
-  ],
-  "env": {
-    "HUGGINGFACE_API_KEY": "@huggingface_api_key"
-  }
+  ]
 }
