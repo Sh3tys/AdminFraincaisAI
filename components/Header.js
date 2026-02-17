@@ -24,18 +24,16 @@ export default function Header() {
   };
 
   return (
-    <header className="header">
-      <button className="theme-toggle" onClick={toggleTheme} title={isDark ? 'Mode clair' : 'Mode sombre'}>
-        <span className="theme-toggle-icon">{isDark ? '◐' : '◑'}</span>
-        <span>{isDark ? 'Clair' : 'Sombre'}</span>
-      </button>
-      
-      <div className="header-content">
-        <div className="logo">
-          <h1 className="logo-text">Démarches Simplifiées</h1>
-        </div>
-        <p className="tagline">Assistant intelligent pour vos démarches administratives</p>
+    <header className="nav-header">
+      <div className="brand">
+        <span className="brand-icon">✦</span>
+        <h1 className="brand-name">AdminFrançais AI</h1>
       </div>
+      
+      <button className="theme-toggle" onClick={toggleTheme} style={{opacity: 0.7}}>
+        <span className="theme-toggle-icon">{isDark ? '✺' : '✹'}</span>
+        <span>{isDark ? 'Matrix' : 'Neon'}</span>
+      </button>
     </header>
   );
 }

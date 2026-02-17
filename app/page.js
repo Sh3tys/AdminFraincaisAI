@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import InputForm from '@/components/InputForm';
 import ResponseDisplay from '@/components/ResponseDisplay';
@@ -8,41 +8,45 @@ import Footer from '@/components/Footer';
 
 export default function Home() {
   const [userInput, setUserInput] = useState('');
-  const [response, setResponse] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [history, setHistory] = useState([]);
+  const chatHistoryRef = useRef(null);
 
-  // Load history from localStorage on mount
+  // Load initial greeting or history
   useEffect(() => {
-    const savedHistory = localStorage.getItem('adminfrancais_history');
-    if (savedHistory) {
+    const savedMessages = localStorage.getItem('adminfrancais_chat_v2');
+    if (savedMessages) {
       try {
-        setHistory(JSON.parse(savedHistory));
+        setMessages(JSON.parse(savedMessages));
       } catch (e) {
-        console.error('Error loading history:', e);
+        console.error('Error loading chat history:', e);
       }
     }
   }, []);
 
-  // Save to history
-  const saveToHistory = (input, response) => {
-    const newEntry = {
-      id: Date.now(),
-      input: input.substring(0, 100) + (input.length > 100 ? '...' : ''),
-      response,
-      timestamp: new Date().toISOString(),
-    };
-    const newHistory = [newEntry, ...history].slice(0, 10); // Keep last 10
-    setHistory(newHistory);
-    localStorage.setItem('adminfrancais_history', JSON.stringify(newHistory));
-  };
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatHistoryRef.current) {
+      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
 
-  // Handle form submission
-  const handleSubmit = async (input, mode = null) => {
+  // Save to history
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('adminfrancais_chat_v2', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  const handleSubmit = async (input) => {
+    if (!input.trim()) return;
+
+    const userMessage = { role: 'user', content: input, id: Date.now() };
+    setMessages(prev => [...prev, userMessage]);
+    setUserInput('');
     setLoading(true);
     setError(null);
-    setResponse(null);
 
     try {
       const res = await fetch('/api/ai', {
@@ -52,7 +56,10 @@ export default function Home() {
         },
         body: JSON.stringify({ 
           userInput: input,
-          mode 
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content
+          }))
         }),
       });
 
@@ -62,8 +69,8 @@ export default function Home() {
         throw new Error(data.error || 'Une erreur est survenue');
       }
 
-      setResponse(data.response);
-      saveToHistory(input, data.response);
+      const aiMessage = { role: 'assistant', content: data.response, id: Date.now() + 1 };
+      setMessages(prev => [...prev, aiMessage]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -71,31 +78,11 @@ export default function Home() {
     }
   };
 
-  // Handle "Explain more simply" button
-  const handleSimplify = () => {
-    if (response) {
-      handleSubmit(userInput, 'simplify');
+  const clearChat = () => {
+    if (confirm('Voulez-vous vraiment effacer toute la conversation ?')) {
+      setMessages([]);
+      localStorage.removeItem('adminfrancais_chat_v2');
     }
-  };
-
-  // Handle "Generate template" button
-  const handleGenerateTemplate = () => {
-    if (response) {
-      handleSubmit(userInput, 'template');
-    }
-  };
-
-  // Load from history
-  const loadFromHistory = (entry) => {
-    setUserInput(entry.input);
-    setResponse(entry.response);
-    setError(null);
-  };
-
-  // Clear history
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem('adminfrancais_history');
   };
 
   return (
@@ -103,78 +90,78 @@ export default function Home() {
       <Header />
       
       <main className="main-content">
-        <div className="content-wrapper">
-          {/* Introduction section */}
-          <section className="intro-section">
-            <h1>Simplifiez vos démarches administratives</h1>
-            <p>
-              Décrivez votre situation (lettre de banque, contrat, abonnement, déménagement, aides...) 
-              et obtenez un guide personnalisé avec des actions concrètes à suivre.
-            </p>
-          </section>
-
-          {/* Input form */}
-          <InputForm 
-            value={userInput}
-            onChange={setUserInput}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
-
-          {/* Error display */}
-          {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              <p>{error}</p>
-            </div>
-          )}
-
-          {/* Loading state */}
-          {loading && (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Analyse de votre situation en cours...</p>
-            </div>
-          )}
-
-          {/* Response display */}
-          {response && !loading && (
-            <ResponseDisplay 
-              response={response}
-              onSimplify={handleSimplify}
-              onGenerateTemplate={handleGenerateTemplate}
-            />
-          )}
-
-          {/* History section */}
-          {history.length > 0 && !loading && (
-            <section className="history-section">
-              <div className="history-header">
-                <h2>Historique récent</h2>
-                <button onClick={clearHistory} className="clear-history-btn">
-                  Effacer
-                </button>
-              </div>
-              <div className="history-list">
-                {history.map((entry) => (
-                  <div 
-                    key={entry.id} 
-                    className="history-item"
-                    onClick={() => loadFromHistory(entry)}
+        <div className="chat-history" ref={chatHistoryRef}>
+          {messages.length === 0 ? (
+            <div className="intro-overlay">
+              <h1>Bonjour ! ✦</h1>
+              <p>Je suis votre assistant administratif intelligent. Comment puis-je vous aider aujourd'hui ?</p>
+              <div style={{marginTop: '2rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap'}}>
+                {["Clôture de compte", "Résilier abonnement", "Demande de RSA"].map(tip => (
+                  <button 
+                    key={tip} 
+                    onClick={() => handleSubmit(tip)}
+                    className="example-btn"
+                    style={{background: 'var(--bg-card)', border: '1px solid var(--border-light)', padding: '0.5rem 1rem', borderRadius: '20px', color: 'var(--text-secondary)'}}
                   >
-                    <p className="history-input">{entry.input}</p>
-                    <span className="history-date">
-                      {new Date(entry.timestamp).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
+                    {tip}
+                  </button>
                 ))}
               </div>
-            </section>
+            </div>
+          ) : (
+            <>
+              {messages.map((msg) => (
+                <div key={msg.id} className={`message-wrapper ${msg.role}-message-wrapper`}>
+                  <div className={`message-bubble ${msg.role}-message`}>
+                    {msg.role === 'assistant' ? (
+                      <ResponseDisplay response={msg.content} isMinimal={true} />
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {loading && (
+                <div className="message-wrapper ai-message-wrapper">
+                  <div className="message-bubble ai-message" style={{padding: '1rem'}}>
+                    <div className="loading-dots">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="error-message" style={{margin: '1rem', borderRadius: '12px'}}>
+                  <p>⚠️ {error}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
+
+        <InputForm 
+          value={userInput}
+          onChange={setUserInput}
+          onSubmit={handleSubmit}
+          loading={loading}
+        />
+        
+        {messages.length > 0 && (
+          <button 
+            onClick={clearChat} 
+            style={{position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem'}}
+          >
+            Effacer la discussion
+          </button>
+        )}
       </main>
 
-      <Footer />
+      {/* Footer hidden or simplified for chat view */}
+      <div style={{height: '20px'}}></div>
     </div>
   );
 }

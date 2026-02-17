@@ -1,16 +1,17 @@
-import { useState } from 'react';
+'use client';
+import { useRef, useEffect } from 'react';
 
 export default function InputForm({ value, onChange, onSubmit, loading }) {
-  const [charCount, setCharCount] = useState(0);
-  const maxChars = 2000;
+  const textareaRef = useRef(null);
 
-  const handleChange = (e) => {
-    const text = e.target.value;
-    if (text.length <= maxChars) {
-      onChange(text);
-      setCharCount(text.length);
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 150);
+      textareaRef.current.style.height = newHeight + 'px';
     }
-  };
+  }, [value]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -19,78 +20,46 @@ export default function InputForm({ value, onChange, onSubmit, loading }) {
     }
   };
 
-  // Example prompts for quick start
-  const examplePrompts = [
-    "J'ai reçu une lettre de ma banque pour clôture de compte",
-    "Je dois résilier mon abonnement internet",
-    "Comment faire ma demande de RSA ?",
-    "Je déménage, quelles démarches faire ?",
-  ];
-
-  const useExample = (example) => {
-    onChange(example);
-    setCharCount(example.length);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
   };
 
   return (
-    <section className="input-section">
-      <form onSubmit={handleSubmit} className="input-form">
-        <label htmlFor="user-input" className="input-label">
-          Décrivez votre situation administrative
-        </label>
-        
+    <div className="input-area-wrapper">
+      <form className="input-container" onSubmit={handleSubmit}>
         <textarea
-          id="user-input"
-          className="input-textarea"
+          ref={textareaRef}
+          className="chat-input"
+          placeholder="Décrivez votre situation administrative..."
           value={value}
-          onChange={handleChange}
-          placeholder="Exemple : J'ai reçu une lettre de ma banque concernant la clôture de mon compte. Je ne comprends pas pourquoi et je ne sais pas quoi faire..."
-          rows={6}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={1}
           disabled={loading}
         />
-        
-        <div className="input-footer">
-          <span className={`char-count ${charCount > maxChars * 0.9 ? 'warning' : ''}`}>
-            {charCount} / {maxChars}
-          </span>
-          
-          <button 
-            type="submit" 
-            className="submit-btn"
-            disabled={!value.trim() || loading}
-          >
-            {loading ? (
-              <>
-                <span className="btn-spinner"></span>
-                Analyse en cours...
-              </>
-            ) : (
-              <>
-                <span>✨</span>
-                Obtenir de l'aide
-              </>
-            )}
-          </button>
-        </div>
+        <button 
+          type="submit" 
+          className="send-button"
+          disabled={!value.trim() || loading}
+          title="Envoyer"
+        >
+          {loading ? (
+            <div className="loading-dots" style={{padding: 0}}>
+              <div className="dot" style={{width: '4px', height: '4px'}}></div>
+              <div className="dot" style={{width: '4px', height: '4px'}}></div>
+              <div className="dot" style={{width: '4px', height: '4px'}}></div>
+            </div>
+          ) : (
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          )}
+        </button>
       </form>
-
-      {/* Example prompts */}
-      {!value && !loading && (
-        <div className="examples-section">
-          <p className="examples-title">💡 Exemples de situations :</p>
-          <div className="examples-grid">
-            {examplePrompts.map((example, index) => (
-              <button
-                key={index}
-                className="example-btn"
-                onClick={() => useExample(example)}
-              >
-                {example}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
+    </div>
   );
 }
