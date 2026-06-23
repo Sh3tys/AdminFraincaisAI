@@ -1,8 +1,8 @@
-# Démarches Simplifiées 🇫🇷
+# Démarches Simplifiées
 
 **Démarches Simplifiées** est un assistant intelligent et professionnel conçu pour aider les citoyens français à naviguer dans la complexité administrative. Propulsé par l'intelligence artificielle (Qwen 2.5), il transforme vos situations confuses en guides clairs, structurés et actionnables.
 
-## ✨ Fonctionnalités Clés
+## Fonctionnalités Clés
 
 - **Analyse de Situation** : Décrivez votre problème en langage naturel (ex: "Ma banque ferme mon compte", "Je déménage le mois prochain") et obtenez une analyse immédiate.
 - **Guides Étape par Étape** : Des instructions précises sur quoi faire, dans quel ordre, et quels documents préparer.
@@ -11,7 +11,7 @@
 - **Design Professionnel & Sombre** : Une interface moderne, épurée et accessible avec un mode sombre (Dark Mode) intégré pour un confort de lecture optimal.
 - **Confidentialité Locale** : Votre historique est sauvegardé localement dans votre navigateur ; rien n'est stocké sur nos serveurs.
 
-## 🛠️ Technologies Utilisées
+## Technologies Utilisées
 
 - **Framework** : Next.js 14+ (App Router)
 - **Langage** : JavaScript / React
@@ -19,7 +19,7 @@
 - **Style** : Vanilla CSS (Design System sur mesure, Glassmorphism)
 - **Déploiement** : Vercel / Netlify
 
-## 🚀 Installation Locale
+## Installation Locale
 
 1. **Cloner le projet** :
    ```bash
@@ -44,7 +44,7 @@
    ```
    L'application sera disponible sur `http://localhost:3000`.
 
-## 🌐 Déploiement
+## Déploiement
 
 ### Sur Vercel (Recommandé)
 
@@ -52,7 +52,7 @@
 2. Ajoutez la variable d'environnement `HF_TOKEN` dans le tableau de bord Vercel.
 3. Déployez !
 
-## 📖 Comment utiliser ?
+## Comment utiliser ?
 
 1. **Saisissez votre situation** dans le champ de texte principal.
 2. **Cliquez sur "Analyser"** pour générer votre guide.
@@ -64,9 +64,8 @@
 4. **Utilisez les boutons d'action** en bas de page pour simplifier davantage ou générer un nouveau modèle.
 5. **Basculez entre Mode Clair et Sombre** via le bouton ◐/◑ en haut à droite.
 
-## ⚖️ Avertissement
+## Avertissement
 
 Ce projet est un outil d'assistance basé sur l'IA. Les informations fournies sont à titre indicatif et ne constituent pas un conseil juridique officiel. En cas de doute, consultez toujours un professionnel ou l'administration concernée.
 
 ---
-Développé avec ❤️ pour simplifier le quotidien administratif.
